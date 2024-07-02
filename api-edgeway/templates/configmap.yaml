@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "edge-api-edgeway.fullname" . }}
+data:
+  application.yml: |
+    server:
+      port: 7777
+    management:
+      endpoint:
+        health:
+          show-details: always
+    spring:
+      application:
+        name: edge-api-edgeway
+      main:
+        allow-bean-definition-overriding: true
+      cloud:
+        gateway:
+          default-filters:
+          routes:
+            - id: edge-control
+              uri: http://edge-control-center:7777
+              predicates:
+                - Path=/api/v1/control/**
+              filters:
+                - StripPrefix=3
+            - id: open-api
+              uri: http://edge-control-center:7777/open-api/
+              predicates:
+                - Path=/open-api/v1/**
+                - Header=X-Request-Id, \d+
+              filters:
+                - StripPrefix=2
+            - id: edge-member
+              uri: http://edge-member-center:7777
+              predicates:
+                - Path=/api/v1/member/**
+              filters:
+                - StripPrefix=3
+            - id: edge-device
+              uri: http://edge-device-center:7777
+              predicates:
+                - Path=/api/v1/iot/api/**
+              filters:
+                - StripPrefix=3
+            - id: edge-job
+              uri: http://edge-job-center:7777
+              predicates:
+                - Path=/xxl-job-admin/**
+            - id: cityhub
+              uri: http://cityhub-adapter:7777
+              predicates:
+                - Path=/api/v1/cityhub/**
+              filters:
+                - StripPrefix=3

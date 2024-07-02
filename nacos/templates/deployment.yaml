@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nacos
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nacos
+  serviceName: nacos
+  template:
+    metadata:
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+      creationTimestamp: null
+      labels:
+        app: nacos
+    spec:
+      containers:
+        - env:
+            - name: NACOS_REPLICAS
+              value: "3"
+            - name: MYSQL_SERVICE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: mysql.db.name
+                  name: nacos-cm
+                  optional: false
+            - name: MYSQL_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: mysql.port
+                  name: nacos-cm
+                  optional: false
+            - name: MYSQL_SERVICE_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: mysql.user
+                  name: nacos-cm
+                  optional: false
+            - name: MYSQL_SERVICE_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: mysql.password
+                  name: nacos-cm
+                  optional: false
+            - name: NACOS_SERVER_PORT
+              value: "8848"
+            - name: NACOS_APPLICATION_PORT
+              value: "8848"
+            - name: PREFER_HOST_MODE
+              value: hostname
+            - name: NACOS_SERVERS
+              value: nacos-0.nacos.{{ .Release.Namespace }}.svc.cluster.local:8848 nacos-1.nacos.{{ .Release.Namespace }}.svc.cluster.local:8848 nacos-2.nacos.{{ .Release.Namespace }}.svc.cluster.local:8848
+            - name: MYSQL_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: mysql.host
+                  name: nacos-cm
+                  optional: false
+            - name: SPRING_DATASOURCE_PLATFORM
+              valueFrom:
+                configMapKeyRef:
+                  key: nacos_datasource_platform
+                  name: nacos-cm
+                  optional: false
+            - name: MYSQL_SERVICE_DB_PARAM
+              value: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: k8snacos
+          ports:
+            - containerPort: 8848
+              name: client
+              protocol: TCP
+            - containerPort: 7848
+              name: rpc
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          securityContext:
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nacos
+  name: nacos
+spec:
+  ports:
+    - name: server
+      port: 8848
+      protocol: TCP
+      targetPort: 8848
+      nodePort: NODE_PORT
+    - name: rpc
+      port: 7848
+      protocol: TCP
+      targetPort: 7848
+  selector:
+    app: nacos
+  sessionAffinity: None
+  type: NodePort
+
+---
+apiVersion: v1
+data:
+  mysql.db.name: nacos_config
+  mysql.host: mysql-n1
+  mysql.password: isoftstone
+  mysql.port: "3306"
+  mysql.user: root
+  nacos_datasource_platform: mysql
+kind: ConfigMap
+metadata:
+  name: nacos-cm

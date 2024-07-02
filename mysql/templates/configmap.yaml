@@ -1,0 +1,109 @@
+apiVersion: v1
+data:
+  init.sql: |+
+    create schema edge_job;
+    use edge_job;
+    -- auto-generated definition
+    create table flyway_schema_generator
+    (
+        installed_rank int                                 not null
+            primary key,
+        version        varchar(50)                         null,
+        description    varchar(200)                        not null,
+        type           varchar(20)                         not null,
+        script         varchar(1000)                       not null,
+        checksum       int                                 null,
+        installed_by   varchar(100)                        not null,
+        installed_on   timestamp default CURRENT_TIMESTAMP not null,
+        execution_time int                                 not null,
+        success        tinyint(1)                          not null
+    );
+    create index flyway_schema_generator_s_idx
+        on flyway_schema_generator (success);
+    create schema cityhub_adapter;
+    use cityhub_adapter;
+    -- auto-generated definition
+    create table flyway_schema_generator
+    (
+        installed_rank int                                 not null
+            primary key,
+        version        varchar(50)                         null,
+        description    varchar(200)                        not null,
+        type           varchar(20)                         not null,
+        script         varchar(1000)                       not null,
+        checksum       int                                 null,
+        installed_by   varchar(100)                        not null,
+        installed_on   timestamp default CURRENT_TIMESTAMP not null,
+        execution_time int                                 not null,
+        success        tinyint(1)                          not null
+    );
+
+    create index flyway_schema_generator_s_idx
+        on flyway_schema_generator (success);
+
+
+    create schema edge_iot;
+    use edge_iot;
+    -- auto-generated definition
+    create table flyway_schema_generator
+    (
+        installed_rank int                                 not null
+            primary key,
+        version        varchar(50)                         null,
+        description    varchar(200)                        not null,
+        type           varchar(20)                         not null,
+        script         varchar(1000)                       not null,
+        checksum       int                                 null,
+        installed_by   varchar(100)                        not null,
+        installed_on   timestamp default CURRENT_TIMESTAMP not null,
+        execution_time int                                 not null,
+        success        tinyint(1)                          not null
+    );
+
+    create index flyway_schema_generator_s_idx
+        on flyway_schema_generator (success);
+
+    create schema edge_member;
+    use edge_member;
+    -- auto-generated definition
+    create table flyway_schema_generator
+    (
+        installed_rank int                                 not null
+            primary key,
+        version        varchar(50)                         null,
+        description    varchar(200)                        not null,
+        type           varchar(20)                         not null,
+        script         varchar(1000)                       not null,
+        checksum       int                                 null,
+        installed_by   varchar(100)                        not null,
+        installed_on   timestamp default CURRENT_TIMESTAMP not null,
+        execution_time int                                 not null,
+        success        tinyint(1)                          not null
+    );
+
+    create index flyway_schema_generator_s_idx
+        on flyway_schema_generator (success);
+    create schema edge_control;
+    use edge_control;
+    -- auto-generated definition
+    create table flyway_schema_generator
+    (
+        installed_rank int                                 not null
+            primary key,
+        version        varchar(50)                         null,
+        description    varchar(200)                        not null,
+        type           varchar(20)                         not null,
+        script         varchar(1000)                       not null,
+        checksum       int                                 null,
+        installed_by   varchar(100)                        not null,
+        installed_on   timestamp default CURRENT_TIMESTAMP not null,
+        execution_time int                                 not null,
+        success        tinyint(1)                          not null
+    );
+
+    create index flyway_schema_generator_s_idx
+        on flyway_schema_generator (success);
+
+kind: ConfigMap
+metadata:
+  name: mysql-cm

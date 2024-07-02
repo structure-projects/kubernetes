@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-n1
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: NodePort
+  selector:
+    {{- include "mysql.selectorLabels" . | nindent 4 }}

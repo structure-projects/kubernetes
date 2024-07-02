@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "edge-api-edgeway.fullname" . }}-test-connection"
+  labels:
+    {{- include "edge-api-edgeway.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "edge-api-edgeway.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

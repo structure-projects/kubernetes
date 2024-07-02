@@ -1,0 +1,74 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mysql
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+  annotations: {}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "mysql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "mysql.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: mysqlvolume
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: init
+          configMap:
+            name: mysql-cm
+            items:
+              - key: init.sql
+                path: init.sql
+      containers:
+        - name: mysql
+          image: 'mysql:8.0.30'
+          ports:
+            - containerPort: 3306
+              protocol: TCP
+          args:
+            - "--character-set-server=utf8mb4"
+            - "--max_connections=16384"
+            - "--collation-server=utf8mb4_general_ci"
+            - "--binlog-ignore-db=mysql"
+            - "--binlog_format=row"
+            - "--log-bin=mysql-bin"
+            - "--expire_logs_days=7"
+            - "--default-authentication-plugin=mysql_native_password"
+            - "--explicit_defaults_for_timestamp=true"
+            - "--sql_mode=STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: 'isoftstone'
+          resources: {}
+          volumeMounts:
+            - name: mysqlvolume
+              mountPath: /var/lib/mysql
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
